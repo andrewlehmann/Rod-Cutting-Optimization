@@ -6,29 +6,32 @@ module MaxPrice (maxPrice) where
   getCutsMap length prices =
     Map.fromList $
       map (\x -> (x, 
-                  List.sort $ filter (\cuts -> (sum cuts == x)) $
-                              filter (\cuts -> all (\cut -> Map.member cut prices) cuts) $
-                              getCuts length length 1 [[]])) 
+                  List.sort $ 
+                    filter (\cuts -> (sum cuts == x)) $
+                    filter (\cuts -> all (\cut -> Map.member cut prices) cuts) $
+                    getCuts length length 1 [[]])) 
           [1..length]
 
   getCuts length maxLength i prevCuts = candidateCuts
     where
       cutsUpToLengthI =
         if length == 1
-          then [[x] | x <- [1..length]]
-        else concatMap (\prevCut -> filter (\cut -> List.sort cut == cut) $ 
-                                    filter (\cut -> sum cut <= maxLength) $
-                                    map (\newElem -> prevCut ++ [newElem]) [1..length]) 
+        then [[x] | x <- [1..length]]
+        else concatMap (\prevCut -> 
+                          filter (\cut -> List.sort cut == cut) $ 
+                          filter (\cut -> sum cut <= maxLength) $
+                          map (\newElem -> prevCut ++ [newElem]) [1..length]) 
                         prevCuts
       candidateCuts =
         if i == length
-          then cutsUpToLengthI
+        then cutsUpToLengthI
         else cutsUpToLengthI ++ getCuts length maxLength (i+1) cutsUpToLengthI
 
   getPrice cut length prices allCutsMap =
     if Map.member length prices
     then sum $ map (\x -> prices Map.! x) cut
-    else sum $ map (\cutLength -> fst $ maxPriceMemoized cutLength prices allCutsMap) cut
+    else sum $ map (\cutLength -> 
+      fst $ maxPriceMemoized cutLength prices allCutsMap) cut
 
   maxPrice length prices = maxPriceMemoized length prices (getCutsMap length prices)
 
