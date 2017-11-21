@@ -7,7 +7,7 @@ module MaxPrice (maxPrice) where
     Map.fromList $
       map (\x -> (x, List.sort (filter (\y -> (sum y == x) && all (\z -> Map.member z prices) y) $
                                        getPossibleCutsCore length length 1 [[]])))
-        [1..length]
+          [1..length]
 
   getPossibleCutsCore length maxLength i prevCuts = candidateCuts
     where
@@ -31,7 +31,7 @@ module MaxPrice (maxPrice) where
       maxPriceCore 1 prices _ = (prices Map.! 1, [[1]])
       maxPriceCore length prices allCutsMap = (bestPrice, bestCuts)
         where
-          cutsOfLengthI = filter (\x -> List.length x > 1 || Map.member (List.head x) prices) $ allCutsMap Map.! length
+          cutsOfLengthI = allCutsMap Map.! length
           getPriceMemo = Memo.memo getPrice
             where
               getPrice cut =
