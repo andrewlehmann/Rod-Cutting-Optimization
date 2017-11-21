@@ -7,8 +7,8 @@ module MaxPrice (maxPrice) where
     Map.fromList $
       map (\x -> (x, 
                   List.sort $ 
-                    filter (\cuts -> (sum cuts == x)) $
                     filter (\cuts -> all (\cut -> Map.member cut prices) cuts) $
+                    filter (\cuts -> (sum cuts == x)) $
                     getCuts length length 1 [[]])) 
           [1..length]
 
