@@ -3,26 +3,32 @@ module MaxPrice (maxPrice) where
   import qualified Data.Map as Map
   import qualified Data.MemoTrie as Memo
 
-  getPossibleCutsMap length prices =
+  getCutsMap length prices =
     Map.fromList $
-      map (\x -> (x, List.sort (filter (\y -> (sum y == x) && all (\z -> Map.member z prices) y) $
-                                       getPossibleCutsCore length length 1 [[]])))
-          [1..length]
+      map (\x -> (x, 
+                  List.sort $ filter (\cuts -> (sum cuts == x)) $
+                              filter (\cuts -> all (\cut -> Map.member cut prices) cuts) $
+                              getCuts length length 1 [[]])) [1..length]
 
-  getPossibleCutsCore length maxLength i prevCuts = candidateCuts
+  getCuts length maxLength i prevCuts = candidateCuts
     where
       cutsUpToLengthI =
         if length == 1
-        then [[x] | x <- [1..length]]
-        else concatMap (\prevCut ->
-          (filter (\cut -> List.sort cut == cut && sum cut <= maxLength) $
-                  map (\newElem -> prevCut ++ [newElem]) [1..length])) prevCuts
+          then [[x] | x <- [1..length]]
+        else concatMap (\prevCut -> filter (\cut -> List.sort cut == cut) $ 
+                                    filter (\cut -> sum cut <= maxLength) $
+                                    map (\newElem -> prevCut ++ [newElem]) [1..length]) prevCuts
       candidateCuts =
         if i == length
-        then cutsUpToLengthI
-        else cutsUpToLengthI ++ getPossibleCutsCore length maxLength (i+1) cutsUpToLengthI
+          then cutsUpToLengthI
+        else cutsUpToLengthI ++ getCuts length maxLength (i+1) cutsUpToLengthI
 
-  maxPrice length prices = maxPriceMemoized length prices (getPossibleCutsMap length prices)
+  getPrice cut length prices allCutsMap =
+    if Map.member length prices
+    then sum $ map (\x -> prices Map.! x) cut
+    else sum $ map (\cutLength -> fst $ maxPriceMemoized cutLength prices allCutsMap) cut
+
+  maxPrice length prices = maxPriceMemoized length prices (getCutsMap length prices)
 
   maxPriceMemoized :: Int -> Map.Map Int Int -> Map.Map Int [[Int]] -> (Int, [[Int]])
   maxPriceMemoized = Memo.memo maxPriceCore
@@ -32,11 +38,5 @@ module MaxPrice (maxPrice) where
       maxPriceCore length prices allCutsMap = (bestPrice, bestCuts)
         where
           cutsOfLengthI = allCutsMap Map.! length
-          getPriceMemo = Memo.memo getPrice
-            where
-              getPrice cut =
-                if Map.member length prices
-                then sum $ map (\x -> prices Map.! x) cut
-                else sum $ map (\cutLength -> fst $ maxPriceMemoized cutLength prices allCutsMap) cut
-          bestPrice = maximum $ map (\x -> getPriceMemo x) cutsOfLengthI
-          bestCuts = filter (\x -> bestPrice == getPriceMemo x) cutsOfLengthI
+          bestPrice = maximum $ map (\x -> getPrice x length prices allCutsMap) cutsOfLengthI
+          bestCuts = filter (\x -> bestPrice == getPrice x length prices allCutsMap) cutsOfLengthI
