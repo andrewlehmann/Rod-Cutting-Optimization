@@ -6,7 +6,7 @@ module MaxPrice (maxPrice) where
   getPossibleCutsMap length prices =
     Map.fromList $
       map (\x -> (x, List.sort (filter (\y -> (sum y == x) && all (\z -> Map.member z prices) y) $
-                    getPossibleCutsCore length length 1 [[]])))
+                                       getPossibleCutsCore length length 1 [[]])))
         [1..length]
 
   getPossibleCutsCore length maxLength i prevCuts = candidateCuts
@@ -16,7 +16,7 @@ module MaxPrice (maxPrice) where
         then [[x] | x <- [1..length]]
         else concatMap (\prevCut ->
           (filter (\cut -> List.sort cut == cut && sum cut <= maxLength) $
-              map (\newElem -> prevCut ++ [newElem]) [1..length])) prevCuts
+                  map (\newElem -> prevCut ++ [newElem]) [1..length])) prevCuts
       candidateCuts =
         if i == length
         then cutsUpToLengthI
