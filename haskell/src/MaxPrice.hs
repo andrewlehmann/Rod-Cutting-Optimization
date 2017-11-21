@@ -5,27 +5,25 @@ module MaxPrice (maxPrice) where
 
   getCutsMap length prices =
     Map.fromList $
-      map (\x -> (x, 
-                  List.sort $ 
-                    filter (\cuts -> all (\cut -> Map.member cut prices) cuts) $
-                    filter (\cuts -> (sum cuts == x)) $
-                    getCuts length length 1 [[]])) 
+      map (\x -> (x, List.sort $ filter (\cuts -> (sum cuts == x)) $
+                                        getCuts length length 1 [[]] prices)) 
           [1..length]
 
-  getCuts length maxLength i prevCuts = candidateCuts
+  getCuts length maxLength i prevCuts prices = candidateCuts
     where
       cutsUpToLengthI =
         if length == 1
         then [[x] | x <- [1..length]]
         else concatMap (\prevCut -> 
                           filter (\cut -> List.sort cut == cut) $ 
+                          filter (\cuts -> all (\cut -> Map.member cut prices) cuts) $
                           filter (\cut -> sum cut <= maxLength) $
                           map (\newElem -> prevCut ++ [newElem]) [1..length]) 
                         prevCuts
       candidateCuts =
         if i == length
         then cutsUpToLengthI
-        else cutsUpToLengthI ++ getCuts length maxLength (i+1) cutsUpToLengthI
+        else cutsUpToLengthI ++ getCuts length maxLength (i+1) cutsUpToLengthI prices
 
   getPrice cut length prices allCutsMap =
     if Map.member length prices
